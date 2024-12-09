@@ -34,7 +34,7 @@
         <p>Max Artistic Mediums <span id="selectedMaxBubbles">100</span></p>
     </div>
     <script>
-        const dataUrl = 'Artworks.csv'; // Path to the raw data file
+        const dataUrl = 'TopMediumsByYear.csv'; // Path to the raw data file
         const width = 1280,
             height = 800,
             margin = {
@@ -88,38 +88,27 @@
         // Load and process the data
         d3.csv(dataUrl).then(data => {
             data.forEach(d => {
-                d.Year = +d.Date || null; // Convert Date to numeric year
+                d.Year = +d.Year || null; // Convert Year to numeric
+                d.Count = +d.Count || 0; // Convert Count to numeric, default to 0
                 d.Decade = d.Year ? Math.floor(d.Year / 10) * 10 : null; // Calculate decade
             });
 
-            // Filter out invalid data (missing Year, Medium, or Decade)
-            let validData = data.filter(d => d.Year && d.Medium && d.Decade);
+            // Filter out invalid data (missing Year, Medium, Decade, or Count)
+            let validData = data.filter(d => d.Year && d.Medium && d.Decade && d.Count > 0);
 
-            // Deduplicate: Keep only one entry per Artist-Medium combination
-            const uniqueEntries = new Map();
-            validData = validData.filter(d => {
-                if (!d.Artist || !d.Medium) return false; // Skip if missing critical data
-                const key = `${d.Artist.trim()}-${d.Medium.trim()}`;
-                if (!uniqueEntries.has(key)) {
-                    uniqueEntries.set(key, true);
-                    return true;
-                }
-                return false;
-            });
-
-            // Group data by decade and medium
+            // Aggregate data by Decade and Medium
             const groupedByDecade = d3.group(validData, d => d.Decade, d => d.Medium);
 
             const topMediumsByDecade = {};
             for (let [decade, mediums] of groupedByDecade) {
                 const mediumCounts = Array.from(mediums, ([medium, entries]) => ({
                     Medium: medium,
-                    Count: entries.length
+                    Count: d3.sum(entries, e => e.Count) // Sum counts for each medium
                 }));
 
                 topMediumsByDecade[decade] = mediumCounts
-                    .sort((a, b) => b.Count - a.Count)
-                    .slice(0, 100);
+                    .sort((a, b) => b.Count - a.Count) // Sort by Count descending
+                    .slice(0, 100); // Limit to top 100 mediums
             }
 
             const decades = Array.from(groupedByDecade.keys()).sort((a, b) => a - b);
@@ -135,10 +124,11 @@
 
             // Update bubble chart on slider input
             document.getElementById('decadeSlider').addEventListener('input', function() {
+                const maxBubbles = +document.getElementById('selectedMaxBubbles').textContent;
 
-                const decade = +this.value;
-                document.getElementById('selectedDecade').textContent = decade;
-                updateBubbleChart(decade);
+                const currentDecade = +this.value;
+                document.getElementById('selectedDecade').textContent = currentDecade;
+                updateBubbleChart(currentDecade, maxBubbles);
             });
 
 
@@ -159,7 +149,7 @@
                 // Create scale for bubble size (based on the count)
                 const sizeScale = d3.scaleSqrt()
                     .domain([0, d3.max(limitedData, d => d.Count)])
-                    .range([10, 50]);
+                    .range([10, 75]);
 
                 const centerX = width / 2;
                 const centerY = height / 2;
@@ -177,8 +167,8 @@
 
                 // Use force simulation to distribute bubbles without overlap
                 const simulation = d3.forceSimulation(limitedData)
-                    .force("center", d3.forceCenter(centerX, centerY).strength(1.5)) // Center bubbles
-                    .force("charge", d3.forceManyBody().strength(1)) // Repulsion to prevent overlap
+                    .force("center", d3.forceCenter(centerX, centerY).strength(2)) // Center bubbles
+                    .force("charge", d3.forceManyBody().strength(.7)) // Repulsion to prevent overlap
                     .force("collision", d3.forceCollide().radius(d => d.r)) // Avoid overlap with padding
                     .stop();
 

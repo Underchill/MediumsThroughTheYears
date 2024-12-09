@@ -1,25 +1,104 @@
+/* Root Variables for Color Palette */
+:root {
+    --color1: #6A0DAD;
+    --color2: #8A2BE2;
+    --color3: #9B30FF;
+    --color4: #7B2F7F;
+    --color5: #6A1D7A;
+    --color6: #4B0082;
+    --color7: #800080;
+    --color8: #9C27B0;
+    --color9: #C71585;
+    --color10: #4B2F4F;
+}
+
+/* General Body Styling */
 body {
     font-family: Arial, sans-serif;
-    background-color: #222;
-    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     margin: 0;
     text-align: center;
+    background-color: #222;
+    color: white;
 }
 
-h1 {
-    color: #ff79c6;
-    margin-top: 20px;
+/* Chart Styling */
+.chart {
+    display: flex;
+    align-content: center;
 }
 
-.bubble {
-    stroke: #ff79c6;
-    stroke-width: 2px;
+.bubble-chart {
+    margin-top: 60px;
+    padding-left: 20px;
 }
 
+/* Tooltip Styling */
+#tooltip {
+    position: absolute;
+    visibility: hidden;
+    background-color: black;
+    color: white;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    pointer-events: none;
+}
+
+/* Text Inside Bubbles */
+.bubble-text {
+    text-anchor: middle;
+    fill: white;
+    font-weight: bold;
+}
+
+/* Slider Container Styling */
 .slider-container {
     margin: 20px;
+    color: white;
 }
 
+/* Slider Styling */
 input[type="range"] {
-    width: 80%;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1280px;
+    background: transparent;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 5px;
+    background: gray;
+    border: none;
+    border-radius: 3px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--color5);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white;
+}
+
+input[type="range"]::-moz-range-track {
+    height: 5px;
+    background: gray;
+    border: none;
+    border-radius: 3px;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--color5);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white;
 }

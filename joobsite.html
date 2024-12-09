@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Top Artwork Mediums by Decade</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center content horizontally */
+            justify-content: center; /* Center content vertically */
+            margin: 0;
+            text-align: center; /* Center text alignment */
+            background-color: black
+        }
+        .chart { display: flex; align-content: center; }
+        .slider-container { margin: 20px; align-content: center; color: white}
+        .bubble-chart { margin-top: 60px; padding-left: 20px;}
+        #tooltip { position: absolute; visibility: hidden; background-color: black; padding: 5px; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1 style="color: white ">Top 10 Artwork Mediums by Decade</h1>
+    <div id="chart"></div>
+    <div class="slider-container">
+        <input type="range" id="decadeSlider" min="<first_decade>" max="<last_decade>" step="10" style="width: 1280px;">
+        <p>Decade: <span id="selectedDecade">1890</span></p>
+        <div id="tooltip" style="position: absolute; visibility: hidden; background-color: black; padding: 5px; border: 1px solid #ddd; border-radius: 5px; pointer-events: none;"></div>
+    </div>
+    <div class="slider-container">
+        <input type="range" id="maxBubblesSlider" min="1" max="100" step="1" value="50" style="width: 1280px;">
+        <p>Max Artistic Mediums <span id="selectedMaxBubbles">100</span></p>
+    </div>
+    <script>
+        const dataUrl = 'Artworks.csv'; // Path to the raw data file
+        const width = 1280,
+            height = 800,
+            margin = {
+                top: 20,
+                right: 30,
+                bottom: 40,
+                left: 50
+            };
+        const palette = ["#FF5733", "#C70039", "#900C3F", "#581845", "#FFC300"];
+
+        const palette1 = [
+          "#D2691E", "#8B4513", "#FFD700", "#FF8C00", "#B22222",
+          "#F4A460", "#FF7F50", "#CD853F", "#A0522D", "#8B0000"
+        ];
+        const palette2 = [
+          "#4682B4", "#5F9EA0", "#20B2AA", "#3CB371", "#2E8B57",
+          "#ADD8E6", "#87CEEB", "#4169E1", "#0000FF", "#4682B4"
+        ];
+
+        const palette3 = [
+          "#FF6347", "#32CD32", "#1E90FF", "#FF1493", "#FFFF00",
+          "#FF4500", "#FFD700", "#00BFFF", "#FF00FF", "#FFA500"
+        ];
+
+        const palette4 = [
+          "#FFB6C1", "#D8BFD8", "#ADD8E6", "#F0E68C", "#98FB98",
+          "#E6E6FA", "#FFDEAD", "#F5FFFA", "#FFE4E1", "#FFF0F5"
+        ];
+
+        const coolPurplePinkPalette = [
+          "#6A0DAD", "#8A2BE2", "#9B30FF", "#7B2F7F", "#6A1D7A",
+          "#4B0082", "#800080", "#9C27B0", "#C71585", "#4B2F4F"
+        ];
+                
+        const defaultMaxBubbles = 50;
+        const defaultDecade = 1890;
+
+        function getRandomColorFromPalette() {
+            const randomIndex = Math.floor(Math.random() * coolPurplePinkPalette.length);
+            return coolPurplePinkPalette[randomIndex];
+        }
+
+        // Create SVG for the bubble chart
+        const svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Load and process the data
+        d3.csv(dataUrl).then(data => {
+            data.forEach(d => {
+                d.Year = +d.Date || null; // Convert Date to numeric year
+                d.Decade = d.Year ? Math.floor(d.Year / 10) * 10 : null; // Calculate decade
+            });
+
+            // Filter out invalid data (missing Year, Medium, or Decade)
+            let validData = data.filter(d => d.Year && d.Medium && d.Decade);
+
+            // Deduplicate: Keep only one entry per Artist-Medium combination
+            const uniqueEntries = new Map();
+            validData = validData.filter(d => {
+                if (!d.Artist || !d.Medium) return false; // Skip if missing critical data
+                const key = `${d.Artist.trim()}-${d.Medium.trim()}`;
+                if (!uniqueEntries.has(key)) {
+                    uniqueEntries.set(key, true);
+                    return true;
+                }
+                return false;
+            });
+
+            // Group data by decade and medium
+            const groupedByDecade = d3.group(validData, d => d.Decade, d => d.Medium);
+
+            const topMediumsByDecade = {};
+            for (let [decade, mediums] of groupedByDecade) {
+                const mediumCounts = Array.from(mediums, ([medium, entries]) => ({
+                    Medium: medium,
+                    Count: entries.length
+                }));
+
+                topMediumsByDecade[decade] = mediumCounts
+                    .sort((a, b) => b.Count - a.Count)
+                    .slice(0, 100);
+            }
+
+            const decades = Array.from(groupedByDecade.keys()).sort((a, b) => a - b);
+            const firstDecade = decades[0];
+            const lastDecade = decades[decades.length - 1];
+
+            // Configure slider
+            document.getElementById('decadeSlider').min = firstDecade;
+            document.getElementById('decadeSlider').max = lastDecade;
+            document.getElementById('decadeSlider').step = 10;
+            document.getElementById('decadeSlider').value = 1890;
+
+
+            // Update bubble chart on slider input
+            document.getElementById('decadeSlider').addEventListener('input', function() {
+
+                const decade = +this.value;
+                document.getElementById('selectedDecade').textContent = decade;
+                updateBubbleChart(decade);
+            });
+
+
+            document.getElementById('maxBubblesSlider').addEventListener('input', function() {
+                const maxBubbles = +this.value;
+                document.getElementById('selectedMaxBubbles').textContent = maxBubbles;
+
+                // Get the current decade from the existing slider
+                var currentDecade = +document.getElementById('decadeSlider').value;
+                updateBubbleChart(currentDecade, maxBubbles);
+            });
+
+            // Update the bubble chart to use the max bubbles value
+            function updateBubbleChart(decade, maxBubbles) {
+                const filteredData = topMediumsByDecade[decade] || [];
+                const limitedData = filteredData.slice(0, maxBubbles); // Limit the number of bubbles
+
+                // Create scale for bubble size (based on the count)
+                const sizeScale = d3.scaleSqrt()
+                    .domain([0, d3.max(limitedData, d => d.Count)])
+                    .range([10, 50]);
+
+                const centerX = width / 2;
+                const centerY = height / 2;
+
+                // Remove existing bubbles and text
+                svg.selectAll(".bubble").remove();
+                svg.selectAll(".bubble-text").remove();
+
+                // Add x and y placeholders to data
+                limitedData.forEach(d => {
+                    d.x = centerX;
+                    d.y = centerY;
+                    d.r = sizeScale(d.Count);
+                });
+
+                // Use force simulation to distribute bubbles without overlap
+                const simulation = d3.forceSimulation(limitedData)
+                    .force("center", d3.forceCenter(centerX, centerY).strength(1.5)) // Center bubbles
+                    .force("charge", d3.forceManyBody().strength(1)) // Repulsion to prevent overlap
+                    .force("collision", d3.forceCollide().radius(d => d.r)) // Avoid overlap with padding
+                    .stop();
+
+                // Run the simulation until stabilization
+                for (let i = 0; i < 100; i++) simulation.tick();
+
+                // Add bubbles to the chart
+                svg.selectAll(".bubble")
+                    .data(limitedData)
+                    .enter()
+                    .append("circle")
+                    .attr("class", "bubble")
+                    .attr("r", d => d.r)
+                    .attr("fill", () => getRandomColorFromPalette())
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 1)
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y)
+                    .on("mouseover", (event, d) => {
+                        const tooltip = d3.select("#tooltip");
+                        tooltip.style("left", `${event.pageX + 10}px`)
+                            .style("top", `${event.pageY - 20}px`)
+                            .style("visibility", "visible")
+                            .html(`<strong>${d.Medium}</strong><br>Count: ${d.Count}`);
+                    })
+                    .on("mouseout", () => {
+                        d3.select("#tooltip").style("visibility", "hidden");
+                    });
+
+                // Add text inside each bubble
+                svg.selectAll(".bubble-text")
+                    .data(limitedData)
+                    .enter()
+                    .append("text")
+                    .attr("class", "bubble-text")
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y)
+                    .text(d => d.Medium.split(" ")[0])
+                    .attr("text-anchor", "middle")
+                    .attr("dy", "0.35em")
+                    .attr("font-size", d => `${Math.max(d.r / 3, 10)}px`)
+                    .attr("fill", "white")
+                    .attr("pointer-events", "none")
+            }
+
+            updateBubbleChart(defaultDecade, defaultMaxBubbles);
+        });
+    </script>
+</body>
+</html>

@@ -49,38 +49,27 @@
                 bottom: 40,
                 left: 50
             };
-        const palette = ["#FF5733", "#C70039", "#900C3F", "#581845", "#FFC300"];
 
-        const palette1 = [
-          "#D2691E", "#8B4513", "#FFD700", "#FF8C00", "#B22222",
-          "#F4A460", "#FF7F50", "#CD853F", "#A0522D", "#8B0000"
-        ];
-        const palette2 = [
-          "#4682B4", "#5F9EA0", "#20B2AA", "#3CB371", "#2E8B57",
-          "#ADD8E6", "#87CEEB", "#4169E1", "#0000FF", "#4682B4"
-        ];
-
-        const palette3 = [
-          "#FF6347", "#32CD32", "#1E90FF", "#FF1493", "#FFFF00",
-          "#FF4500", "#FFD700", "#00BFFF", "#FF00FF", "#FFA500"
-        ];
-
-        const palette4 = [
-          "#FFB6C1", "#D8BFD8", "#ADD8E6", "#F0E68C", "#98FB98",
-          "#E6E6FA", "#FFDEAD", "#F5FFFA", "#FFE4E1", "#FFF0F5"
-        ];
-
-        const coolPurplePinkPalette = [
-          "#6A0DAD", "#8A2BE2", "#9B30FF", "#7B2F7F", "#6A1D7A",
-          "#4B0082", "#800080", "#9C27B0", "#C71585", "#4B2F4F"
+        const rootStyles = getComputedStyle(document.documentElement);
+        const colorPalette = [
+            rootStyles.getPropertyValue("--color1").trim(),
+            rootStyles.getPropertyValue("--color2").trim(),
+            rootStyles.getPropertyValue("--color3").trim(),
+            rootStyles.getPropertyValue("--color4").trim(),
+            rootStyles.getPropertyValue("--color5").trim(),
+            rootStyles.getPropertyValue("--color6").trim(),
+            rootStyles.getPropertyValue("--color7").trim(),
+            rootStyles.getPropertyValue("--color8").trim(),
+            rootStyles.getPropertyValue("--color9").trim(),
+            rootStyles.getPropertyValue("--color10").trim(),
         ];
                 
         const defaultMaxBubbles = 50;
         const defaultDecade = 1890;
 
         function getRandomColorFromPalette() {
-            const randomIndex = Math.floor(Math.random() * coolPurplePinkPalette.length);
-            return coolPurplePinkPalette[randomIndex];
+            const randomIndex = Math.floor(Math.random() * colorPalette.length);
+            return colorPalette[randomIndex];
         }
 
         // Create SVG for the bubble chart

@@ -1,0 +1,25 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #222;
+    color: #fff;
+    margin: 0;
+    text-align: center;
+}
+
+h1 {
+    color: #ff79c6;
+    margin-top: 20px;
+}
+
+.bubble {
+    stroke: #ff79c6;
+    stroke-width: 2px;
+}
+
+.slider-container {
+    margin: 20px;
+}
+
+input[type="range"] {
+    width: 80%;
+}

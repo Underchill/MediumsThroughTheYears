@@ -163,7 +163,7 @@
                 // Use force simulation to distribute bubbles without overlap
                 const simulation = d3.forceSimulation(limitedData)
                     .force("center", d3.forceCenter(centerX, centerY).strength(2)) // Center bubbles
-                    .force("charge", d3.forceManyBody().strength(.7)) // Repulsion to prevent overlap
+                    .force("charge", d3.forceManyBody().strength(.4)) // Repulsion to prevent overlap
                     .force("collision", d3.forceCollide().radius(d => d.r)) // Avoid overlap with padding
                     .stop();
 

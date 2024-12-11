@@ -4,7 +4,16 @@
     --color2: #5e95ff;
     --color3: #6adbc4;
 }
+/* Header Sizes */
+h1{
+    font-size: 75px;
+    margin: 10px;
+}
 
+h2{
+    font-size: 30px;
+    margin: 5px;
+}
 /* General Body Styling */
 body {
     font-family: Playfair Display, serif;
@@ -13,6 +22,8 @@ body {
     align-items: center;
     justify-content: center;
     margin: 0;
+    padding: 0;
+    overflow: hidden;
     text-align: center;
     background-color: #e6e6e0;
     color: #000000;
@@ -83,4 +94,7 @@ input[type="range"]::-webkit-slider-thumb {
     cursor: pointer;
     border: 0px solid gray;
     border-block-style:initial
+}
+svg {
+    display: block; /* Removes unwanted white spaces around the SVG */
 }

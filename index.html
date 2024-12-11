@@ -36,10 +36,6 @@
         <p>Decade: <span id="selectedDecade">1890</span></p>
         <div id="tooltip" style="position: absolute; visibility: hidden; background-color: black; padding: 5px; border: 1px solid #ddd; border-radius: 5px; pointer-events: none;"></div>
     </div>
-    <div class="slider-container">
-        <input type="range" id="maxBubblesSlider" min="1" max="100" step="1" value="50" style="width: 1280px;">
-        <p>Max Artistic Mediums <span id="selectedMaxBubbles">100</span></p>
-    </div>
     <script>
         const dataUrl = 'TopMediumsByYear.csv'; // Path to the raw data file
         const width = 1280,
@@ -113,23 +109,14 @@
 
             // Update bubble chart on slider input
             document.getElementById('decadeSlider').addEventListener('input', function() {
-                const maxBubbles = +document.getElementById('selectedMaxBubbles').textContent;
-
+                const maxBubbles = 100;
                 const currentDecade = +this.value;
                 document.getElementById('selectedDecade').textContent = currentDecade;
                 updateBubbleChart(currentDecade, maxBubbles);
             });
 
 
-            document.getElementById('maxBubblesSlider').addEventListener('input', function() {
-                const maxBubbles = +this.value;
-                document.getElementById('selectedMaxBubbles').textContent = maxBubbles;
-
-                // Get the current decade from the existing slider
-                var currentDecade = +document.getElementById('decadeSlider').value;
-                updateBubbleChart(currentDecade, maxBubbles);
-            });
-
+            
             // Update the bubble chart to use the max bubbles value
             function updateBubbleChart(decade, maxBubbles) {
                 const filteredData = topMediumsByDecade[decade] || [];
@@ -154,15 +141,23 @@
                     d.r = sizeScale(d.Count);
                 });
 
-                // Use force simulation to distribute bubbles without overlap
+                    // Use force simulation to distribute bubbles without overlap
                 const simulation = d3.forceSimulation(limitedData)
                     .force("center", d3.forceCenter(centerX, centerY).strength(2)) // Center bubbles
-                    .force("charge", d3.forceManyBody().strength(.4)) // Repulsion to prevent overlap
-                    .force("collision", d3.forceCollide().radius(d => d.r)) // Avoid overlap with padding
+                    .force("charge", d3.forceManyBody().strength(0.4)) // Repulsion to prevent overlap
+                    .force("collision", d3.forceCollide().radius(d => d.r)) // Avoid overlap
                     .stop();
 
                 // Run the simulation until stabilization
-                for (let i = 0; i < 100; i++) simulation.tick();
+                for (let i = 0; i < 100; i++) {
+                    simulation.tick();
+
+                    // Ensure bubbles stay within bounds
+                    limitedData.forEach(d => {
+                        d.x = Math.max(d.r, Math.min(width - d.r, d.x)); // Clamp x to [r, width - r]
+                        d.y = Math.max(d.r, Math.min(height - d.r, d.y)); // Clamp y to [r, height - r]
+                    });
+                }
 
                 // Add bubbles to the chart
                 svg.selectAll(".bubble")
